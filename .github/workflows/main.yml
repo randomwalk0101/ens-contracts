@@ -1,99 +1,34 @@
-name: CI
+# 机器人任务名称
+name: Sync Upstream (from ensdomains/ens-contracts)
 
 on:
-  push:
-    branches: [staging, mainnet]
-  pull_request:
+  # 触发条件1：定时（每天UTC 0点）
+  schedule:
+    - cron: '0 0 * * *'
+  # 触发条件2：手动触发（你可以在 Actions 页面点一个按钮）
+  workflow_dispatch:
 
 jobs:
-  wiki_address_check:
+  sync:
     runs-on: ubuntu-latest
     steps:
+      # 步骤1：签出你自己的 fork
       - uses: actions/checkout@v4
-
-      - name: Use Bun 1.2.3
-        uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.2.3
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      # 步骤2：执行“同步”
+      - name: Sync Upstream Repository
+        uses: repo-sync/github-sync@v2
         with:
-          node-version-file: .nvmrc
-
-      - run: bun install --frozen-lockfile
-
-      - name: Run wiki check
-        run: bun wiki check
-
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Bun 1.2.3
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.3
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - run: bun install --frozen-lockfile
-
-      - name: Run tests
-        run: bun run build
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Bun 1.2.3
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.3
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - run: bun install --frozen-lockfile
-
-      - name: Compile contracts and generate artifacts
-        run: bun run compile
-
-      - name: Run tests
-        run: bun run test
-
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Bun 1.2.3
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.3
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - run: bun install --frozen-lockfile
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Compile contracts and generate artifacts
-        run: bun run compile
-
-      - name: Run deploy
-        run: bun run test:deploy
+          # ⚠️ 关键：原始仓库地址
+          upstream_repository: "ensdomains/ens-contracts"
+          
+          # ⚠️ 关键：原始仓库的主分支 (ENS Contracts 用的是 master)
+          upstream_branch: "master"
+          
+          # ⚠️ 关键：你的 fork 仓库的目标分支 (也应该是 master)
+          target_branch: "master"
+          
+          # 令牌，让机器人有“写”权限
+          token: ${{ secrets.GITHUB_TOKEN }}
