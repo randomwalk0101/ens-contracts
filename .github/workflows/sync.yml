@@ -1,0 +1,25 @@
+# 机器人任务名称
+name: Sync Upstream (from ensdomains/ens-contracts)
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # 步骤1：签出你自己的 fork
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 步骤2：执行“同步”
+      - name: Sync Upstream Repository
+        uses: repo-sync/github-sync@v2
+        with:
+          upstream_repository: "ensdomains/ens-contracts"
+          upstream_branch: "master"
+          target_branch: "master"
+          token: ${{ secrets.GITHUB_TOKEN }}
